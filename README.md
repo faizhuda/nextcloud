@@ -11,7 +11,7 @@
 
 ## Daftar Isi
 
-| [Sekilas Tentang](#abstrak) | [Instalasi](#instalasi--konfigurasi) | [Konfigurasi](#4-konfigurasi-reverse-proxy-via-web-gui) | [Otomatisasi](#keamanan--backup) | [Cara Pemakaian](#penggunaan-nextcloud) | [Pembahasan](#pembahasan) | [Referensi](#referensi) |
+| [Sekilas Tentang](#abstrak) | [Instalasi](#instalasi--konfigurasi) | [Konfigurasi](#4-konfigurasi-reverse-proxy-via-web-gui) | [Keamanan](#keamanan--backup) | [Cara Pemakaian](#penggunaan-nextcloud) | [Pembahasan](#pembahasan) | [Referensi](#referensi) |
 
 ## Abstrak
 
@@ -74,7 +74,7 @@ Sistem diimplementasikan pada Mini-PC dengan topologi sederhana:
 * Database: MariaDB (container)
 * Network: user-defined Docker network (`jeff`)
 
-Diagram arsitektur tersedia pada `diagram-arsitektur.png` di repository.
+![Diagram arsitektur](docs/diagram-arsitektur.jpg)
 
 ---
 
@@ -177,9 +177,7 @@ Apabila domain belum resolve ke IP server, pastikan pengaturan DNS dan port forw
 Antarmuka NPM berbentuk web modern yang menampilkan daftar **Proxy Host**, **SSL Certificates**, dan **Access Lists**.
 Contohnya seperti berikut:
 
-![Nginx Proxy Manager Dashboard](docs/npm-dashboard.png)
-
-(*gambar dapat diganti dengan screenshot asli milik kamu nanti*)
+![Nginx Proxy Manager Dashboard](docs/npm-dashboard.jpg)
 
 ---
 
@@ -264,69 +262,6 @@ Contoh strategi backup sederhana:
 * Backup file data (sinkron ke disk eksternal atau NAS) setiap hari.
 * Backup database (dump MariaDB) setiap hari.
 * Simpan rotasi backup 7 hari.
-* Contoh skrip backup ada di folder `scripts/` (tidak disertakan di sini, bisa dibuat terpisah).
-
----
-
-## Troubleshooting Umum
-
-[⬆️ Kembali ke atas](#daftar-isi)
-
-Berikut beberapa permasalahan umum yang sering muncul saat implementasi Nextcloud self-hosted menggunakan Docker dan Nginx Proxy Manager, beserta solusinya:
-
-### 1. Port 80 Sudah Digunakan
-
-**Masalah:**
-Pesan error seperti `Bind for 0.0.0.0:80 failed: port is already allocated` saat menjalankan `docker-compose up`.
-
-**Solusi:**
-
-* Pastikan tidak ada service lain yang menggunakan port tersebut (contoh: Apache).
-* Jalankan `sudo lsof -i :80` atau `sudo netstat -tulpn | grep :80` untuk melihat proses yang memakai port.
-* Hentikan service tersebut dengan `sudo systemctl stop apache2`.
-
-### 2. Nextcloud Tidak Bisa Diakses Setelah Restart
-
-**Masalah:**
-Setelah reboot server, container tidak otomatis berjalan.
-
-**Solusi:**
-
-* Pastikan setiap service di `docker-compose.yml` memiliki opsi `restart: unless-stopped`.
-* Jalankan `docker ps -a` untuk memastikan semua container aktif.
-* Jika belum berjalan, jalankan `docker compose up -d`.
-
-### 3. DNS Lokal Tidak Resolve
-
-**Masalah:**
-Domain `mtf.idenx.id` tidak bisa diakses dari dalam jaringan lokal, tapi bisa dari luar.
-
-**Solusi:**
-
-* Tambahkan entri DNS manual di `/etc/hosts` untuk mengarahkan domain ke IP lokal.
-
-  ```
-  192.168.1.10  mtf.idenx.id
-  ```
-* Jika menggunakan router dengan DNS internal, tambahkan record A di DNS router.
-
-### 4. Database Connection Error
-
-**Masalah:**
-Nextcloud menampilkan pesan `Error: Can't connect to database`.
-
-**Solusi:**
-
-* Periksa container database dengan `docker logs nc-tristan-db`.
-* Pastikan environment `MYSQL_*` di `docker-compose.yml` sesuai.
-* Jalankan ulang urutan container:
-
-  ```bash
-  docker compose down
-  docker compose up -d db
-  sleep 10
-  docker compose up -d app
-  ```
 
 ---
 
@@ -355,8 +290,7 @@ Nextcloud menampilkan pesan `Error: Can't connect to database`.
 [⬆️ Kembali ke atas](#daftar-isi)
 
 * `docker-compose.yml` — konfigurasi service
-* `diagram-arsitektur.png` — diagram topologi
-* `scripts/` — (opsional) skrip backup dan maintenance
+* `diagram-arsitektur.jpg` — diagram topologi
 
 ---
 

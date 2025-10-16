@@ -15,7 +15,7 @@
 
 ## Abstrak
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 Dokumen ini menjelaskan implementasi Nextcloud sebagai sistem kolaborasi dan penyimpanan data self-hosted. Implementasi dilakukan pada lingkungan Mini-PC berbasis Ubuntu 22.04 dengan penggunaan Docker, Docker Compose, Nginx Proxy Manager, dan MariaDB. Tujuan pekerjaan ini adalah menyediakan panduan teknis lengkap yang mencakup instalasi, konfigurasi, keamanan, backup, serta pengujian performa awal.
 
@@ -23,7 +23,7 @@ Dokumen ini menjelaskan implementasi Nextcloud sebagai sistem kolaborasi dan pen
 
 ## Latar Belakang dan Tujuan
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 Kebutuhan organisasi/akademik terhadap sistem penyimpanan dan kolaborasi data yang aman, dapat dikendalikan, dan hemat biaya mendorong penggunaan solusi self-hosted. Nextcloud dipilih karena fitur kolaborasi (file sharing, calendar, talk, docs), fleksibilitas deployment, dan dukungan ekosistem aplikasi. Tujuan laporan ini adalah:
 
@@ -35,7 +35,7 @@ Kebutuhan organisasi/akademik terhadap sistem penyimpanan dan kolaborasi data ya
 
 ## Ruang Lingkup dan Batasan
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 Ruang lingkup:
 
@@ -54,7 +54,7 @@ Batasan:
 
 ## Tinjauan Pustaka Singkat
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 * Prinsip containerization dan orkestrasi ringan dengan Docker.
 * Arsitektur reverse proxy untuk mengamankan dan memetakan domain.
@@ -64,7 +64,7 @@ Batasan:
 
 ## Arsitektur Sistem
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 Sistem diimplementasikan pada Mini-PC dengan topologi sederhana:
 
@@ -74,13 +74,13 @@ Sistem diimplementasikan pada Mini-PC dengan topologi sederhana:
 * Database: MariaDB (container)
 * Network: user-defined Docker network (`jeff`)
 
-![Diagram arsitektur](docs/diagram-arsitektur.jpg)
+Diagram arsitektur tersedia pada `diagram-arsitektur.png` di repository.
 
 ---
 
 ## Teknologi yang Digunakan
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 * Ubuntu 22.04 (host)
 * Docker & Docker Compose (v3.8)
@@ -93,7 +93,7 @@ Sistem diimplementasikan pada Mini-PC dengan topologi sederhana:
 
 ## Instalasi & Konfigurasi
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 ### 1. Persiapan Host
 
@@ -177,13 +177,15 @@ Apabila domain belum resolve ke IP server, pastikan pengaturan DNS dan port forw
 Antarmuka NPM berbentuk web modern yang menampilkan daftar **Proxy Host**, **SSL Certificates**, dan **Access Lists**.
 Contohnya seperti berikut:
 
-![Nginx Proxy Manager Dashboard](docs/npm-dashboard.jpg)
+![Nginx Proxy Manager Dashboard](docs/npm-dashboard.png)
+
+(*gambar dapat diganti dengan screenshot asli milik kamu nanti*)
 
 ---
 
 ## Penggunaan Nextcloud
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 Setelah instalasi dan konfigurasi selesai, Nextcloud dapat diakses melalui browser di alamat domain yang sudah dikonfigurasi, misalnya:
 
@@ -247,7 +249,7 @@ Berikut panduan penggunaan untuk pengguna umum:
 
 ## Keamanan & Backup
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 ### Keamanan Dasar
 
@@ -262,12 +264,75 @@ Contoh strategi backup sederhana:
 * Backup file data (sinkron ke disk eksternal atau NAS) setiap hari.
 * Backup database (dump MariaDB) setiap hari.
 * Simpan rotasi backup 7 hari.
+* Contoh skrip backup ada di folder `scripts/` (tidak disertakan di sini, bisa dibuat terpisah).
+
+---
+
+## Troubleshooting Umum
+
+[⬆️ Kembali ke atas](#daftar-isi)
+
+Berikut beberapa permasalahan umum yang sering muncul saat implementasi Nextcloud self-hosted menggunakan Docker dan Nginx Proxy Manager, beserta solusinya:
+
+### 1. Port 80 Sudah Digunakan
+
+**Masalah:**
+Pesan error seperti `Bind for 0.0.0.0:80 failed: port is already allocated` saat menjalankan `docker-compose up`.
+
+**Solusi:**
+
+* Pastikan tidak ada service lain yang menggunakan port tersebut (contoh: Apache).
+* Jalankan `sudo lsof -i :80` atau `sudo netstat -tulpn | grep :80` untuk melihat proses yang memakai port.
+* Hentikan service tersebut dengan `sudo systemctl stop apache2`.
+
+### 2. Nextcloud Tidak Bisa Diakses Setelah Restart
+
+**Masalah:**
+Setelah reboot server, container tidak otomatis berjalan.
+
+**Solusi:**
+
+* Pastikan setiap service di `docker-compose.yml` memiliki opsi `restart: unless-stopped`.
+* Jalankan `docker ps -a` untuk memastikan semua container aktif.
+* Jika belum berjalan, jalankan `docker compose up -d`.
+
+### 3. DNS Lokal Tidak Resolve
+
+**Masalah:**
+Domain `mtf.idenx.id` tidak bisa diakses dari dalam jaringan lokal, tapi bisa dari luar.
+
+**Solusi:**
+
+* Tambahkan entri DNS manual di `/etc/hosts` untuk mengarahkan domain ke IP lokal.
+
+  ```
+  192.168.1.10  mtf.idenx.id
+  ```
+* Jika menggunakan router dengan DNS internal, tambahkan record A di DNS router.
+
+### 4. Database Connection Error
+
+**Masalah:**
+Nextcloud menampilkan pesan `Error: Can't connect to database`.
+
+**Solusi:**
+
+* Periksa container database dengan `docker logs nc-tristan-db`.
+* Pastikan environment `MYSQL_*` di `docker-compose.yml` sesuai.
+* Jalankan ulang urutan container:
+
+  ```bash
+  docker compose down
+  docker compose up -d db
+  sleep 10
+  docker compose up -d app
+  ```
 
 ---
 
 ## Pembahasan
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 * Implementasi container memudahkan replikasi dan manajemen layanan.
 * Bottleneck yang paling mungkin adalah I/O storage dan bandwidth uplink.
@@ -277,7 +342,7 @@ Contoh strategi backup sederhana:
 
 ## Kesimpulan & Saran
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 * Nextcloud cocok untuk kebutuhan kampus skala kecil sampai menengah dengan kontrol penuh atas data.
 * Rekomendasi: gunakan SSD untuk data directory, atur backup otomatis, dan pantau resource secara periodik.
@@ -287,16 +352,17 @@ Contoh strategi backup sederhana:
 
 ## Lampiran
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 * `docker-compose.yml` — konfigurasi service
-* `diagram-arsitektur.jpg` — diagram topologi
+* `diagram-arsitektur.png` — diagram topologi
+* `scripts/` — (opsional) skrip backup dan maintenance
 
 ---
 
 ## Referensi
 
-[⬆️ Kembali ke atas](#readme)
+[⬆️ Kembali ke atas](#daftar-isi)
 
 * Dokumentasi resmi Nextcloud: [https://nextcloud.com](https://nextcloud.com)
 * Dokumentasi Docker: [https://docs.docker.com](https://docs.docker.com)

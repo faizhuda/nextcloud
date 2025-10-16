@@ -156,9 +156,9 @@ Masuk ke tab **“Proxy Hosts”** dan pilih **Add Proxy Host**, lalu isi kolom 
 | ------------------------- | ---------------- | ------------------------------------------------ |
 | **Domain Names**          | `mtf.idenx.id`   | Domain publik untuk akses Nextcloud              |
 | **Scheme**                | `http`           | Gunakan HTTP karena SSL belum diaktifkan         |
-| **Forward Hostname / IP** | `nc-tristan-app` | Nama container Nextcloud (bisa juga `IP-server`) |
+| **Forward Hostname / IP** | `IP-server`      | Nama container Nextcloud                         |
 | **Forward Port**          | `23001`          | Port container Nextcloud                         |
-| **Cache Assets**          | Centang          | Untuk efisiensi akses statis                     |
+| **Cache Assets**          | Kosong           | Untuk efisiensi akses statis                     |
 | **Block Common Exploits** | Centang          | Perlindungan dasar terhadap serangan umum        |
 
 #### 3. Verifikasi Akses
@@ -196,52 +196,48 @@ Berikut panduan penggunaan untuk pengguna umum:
 ### 1. Login ke Nextcloud
 
 * Buka browser dan akses domain Nextcloud.
+![Login Nextcloud](docs/nc-login.png)
 * Masukkan **username** dan **password** yang telah dibuat saat instalasi.
 * Setelah login, pengguna akan masuk ke tampilan beranda (dashboard) Nextcloud.
+![Dashboard Nextcloud](docs/nc-db.png)
+* Klik icon berbentuk folder di pojok atas kiri bernama "Files".
+![Files Nextcloud](docs/nc-db.png)
 
 ### 2. Mengunggah (Upload) File
 
-* Klik ikon **➕ Upload** di pojok kanan atas area file.
+* Klik ikon **➕ New** di atas area file.
+![New Nextcloud](docs/nc-new.png)
 * Pilih file dari komputer yang ingin diunggah.
 * File akan tersimpan di folder utama pengguna dan dapat diakses kapan saja.
+![New 2 Nextcloud](docs/nc-new2.png)
 
 ### 3. Mengunduh (Download) File
 
 * Klik kanan pada file yang ingin diunduh, lalu pilih **Download**.
+![Download Nextcloud](docs/nc-download.png)
 * File akan otomatis tersimpan di perangkat lokal pengguna.
 
 ### 4. Membuat Folder Baru
 
-* Klik ikon **Folder Baru**.
+* Klik ikon **➕ New** di atas area file.
+[New Nextcloud](docs/nc-new.png)
 * Beri nama folder sesuai kebutuhan.
+[Folder Nextcloud](docs/nc-folder.png)
 * Folder ini bisa diisi file pribadi atau dibagikan dengan pengguna lain.
+
 
 ### 5. Berbagi File atau Folder
 
 * Klik ikon **Share (bagikan)** di samping file/folder.
-* Pilih **Share link** untuk membagikan kepada publik, atau **Share with users** untuk membatasi akses hanya ke pengguna tertentu.
-* Dapat ditambahkan **password** dan **tanggal kadaluarsa** untuk keamanan.
+* Pilih **Create public link** untuk membagikan kepada publik, atau **Internal shares** untuk membatasi akses hanya ke pengguna tertentu.
+![Share Nextcloud](docs/nc-share.png)
 
 ### 6. Sinkronisasi dengan Aplikasi Desktop dan Mobile
 
 * Unduh aplikasi Nextcloud Desktop (Windows, macOS, Linux) atau Mobile (Android, iOS) dari [https://nextcloud.com/install](https://nextcloud.com/install).
 * Masukkan URL server (misal `http://mtf.idenx.id`) dan login dengan akun Nextcloud kamu.
+[Folder Nextcloud](docs/nc-mobile.png)
 * Aplikasi akan otomatis menyinkronkan file antara perangkat dan server.
-
-### 7. Menggunakan Aplikasi Tambahan
-
-* Dari menu pojok kanan atas, klik **Apps** untuk melihat daftar aplikasi tambahan seperti:
-
-  * **Talk:** video call dan chat.
-  * **Calendar:** kalender dan sinkronisasi dengan perangkat.
-  * **Contacts:** manajemen kontak.
-  * **OnlyOffice/Collabora:** untuk mengedit dokumen langsung di browser.
-
-### 8. Mengganti Tema atau Bahasa
-
-* Klik profil di pojok kanan atas → **Settings** → **Personal Info**.
-* Di bagian **Appearance**, pilih tema terang/gelap.
-* Di bagian **Language**, ubah ke Bahasa Indonesia atau bahasa lain sesuai preferensi.
 
 ---
 
@@ -255,23 +251,39 @@ Berikut panduan penggunaan untuk pengguna umum:
 * Selalu perbarui image Docker dan host OS.
 * Konfigurasi file permission: data directory harus milik www-data pada container Nextcloud.
 
-### Backup
-
-Contoh strategi backup sederhana:
-
-* Backup file data (sinkron ke disk eksternal atau NAS) setiap hari.
-* Backup database (dump MariaDB) setiap hari.
-* Simpan rotasi backup 7 hari.
-
 ---
 
 ## Pembahasan
 
-[⬆️ Kembali ke atas](#daftar-isi)
+### Pendapat Tentang Aplikasi Web Ini
 
-* Implementasi container memudahkan replikasi dan manajemen layanan.
-* Bottleneck yang paling mungkin adalah I/O storage dan bandwidth uplink.
-* Untuk skala lebih besar, pertimbangkan integrasi object storage (S3) atau NFS dengan performa lebih baik.
+Nextcloud merupakan aplikasi web self-hosted yang sangat fleksibel dan mudah digunakan untuk kebutuhan kolaborasi data. Bagi pengguna umum, tampilannya mirip layanan cloud populer seperti Google Drive, tetapi dengan keunggulan utama: data sepenuhnya dikelola sendiri di server lokal. Integrasi dengan aplikasi tambahan seperti Talk, Calendar, dan OnlyOffice memberikan pengalaman kolaborasi yang lengkap tanpa bergantung pada pihak ketiga.
+
+### Kelebihan
+
+* **Kendali penuh atas data:** semua file tersimpan di server sendiri.
+* **Open source dan gratis:** tanpa biaya lisensi.
+* **Fitur kolaborasi lengkap:** sinkronisasi lintas perangkat, berbagi file, chat, dan kolaborasi dokumen.
+* **Ekstensi fleksibel:** dapat menambahkan aplikasi tambahan sesuai kebutuhan.
+* **Kompatibilitas luas:** berjalan di hampir semua platform (Linux, Windows, macOS, Android, iOS).
+
+### Kekurangan
+
+* **Butuh pengetahuan teknis awal:** instalasi dan maintenance memerlukan dasar Docker dan server.
+* **Kinerja bergantung pada hardware:** pada Mini-PC atau server kecil, performa bisa menurun dengan banyak pengguna.
+* **Tidak sepraktis cloud komersial:** butuh pengaturan manual untuk SSL, backup, dan DNS.
+
+### Perbandingan dengan Aplikasi Sejenis
+
+| Aplikasi         | Hosting              | Biaya           | Fitur Kolaborasi | Privasi Data                   | Tingkat Kustomisasi |
+| ---------------- | -------------------- | --------------- | ---------------- | ------------------------------ | ------------------- |
+| **Nextcloud**    | Self-hosted          | Gratis          | Lengkap          | Sangat tinggi                  | Sangat tinggi       |
+| **Google Drive** | Cloud (Google)       | Freemium        | Lengkap          | Rendah (data di server Google) | Rendah              |
+| **Dropbox**      | Cloud (Dropbox Inc.) | Berbayar        | Dasar            | Sedang                         | Rendah              |
+| **Seafile**      | Self-hosted          | Gratis/Berbayar | Lengkap          | Tinggi                         | Tinggi              |
+| **OwnCloud**     | Self-hosted          | Gratis          | Mirip Nextcloud  | Tinggi                         | Tinggi              |
+
+Secara keseluruhan, Nextcloud lebih cocok untuk pengguna atau institusi yang membutuhkan **kontrol penuh atas data**, privasi tinggi, dan kemampuan integrasi fleksibel, sementara layanan cloud komersial lebih unggul untuk pengguna umum yang menginginkan kemudahan tanpa setup teknis.
 
 ---
 

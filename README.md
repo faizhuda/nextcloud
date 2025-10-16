@@ -201,7 +201,7 @@ Berikut panduan penggunaan untuk pengguna umum:
 * Setelah login, pengguna akan masuk ke tampilan beranda (dashboard) Nextcloud.
 ![Dashboard Nextcloud](docs/nc-db.png)
 * Klik icon berbentuk folder di pojok atas kiri bernama "Files".
-![Files Nextcloud](docs/nc-db.png)
+![Files Nextcloud](docs/nc-files.png)
 
 ### 2. Mengunggah (Upload) File
 

@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  db:
+    image: mariadb:10.6
+    container_name: nc-tristan-db
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    environment:
+      - MARIADB_ROOT_PASSWORD=change_this_root_password
+      - MARIADB_DATABASE=nextcloud
+      - MARIADB_USER=nextcloud
+      - MARIADB_PASSWORD=change_this_db_password
+    volumes:
+      - /disk/data-01/tristan/data-nc/db:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - jeff
+
+  app:
+    image: nextcloud:stable-apache
+    container_name: nc-tristan-app
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "23001:80"
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=change_this_db_password
+    volumes:
+      - /disk/data-01/tristan/data-nc/nc:/var/www/html
+      - ./config/config.php:/var/www/html/config/config.php:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - jeff
+
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81" # UI
+    volumes:
+      - /disk/data-01/tristan/data-nc/npm/data:/data
+      - /disk/data-01/tristan/data-nc/npm/letsencrypt:/etc/letsencrypt
+    networks:
+      - jeff
+
+networks:
+  jeff:
+    name: jeff

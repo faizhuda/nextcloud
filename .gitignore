@@ -1,0 +1,53 @@
+# === 1️⃣ Direktori Data & Backup ===
+data/
+backup/
+disk/
+mnt/
+tmp/
+
+# === 2️⃣ File Konfigurasi Sensitif ===
+config/config.php
+config/*.json
+.env
+*.env
+.env.local
+*.key
+*.pem
+
+# === 3️⃣ Log & Dump File ===
+*.log
+*.sql
+*.sql.gz
+*.tar.gz
+*.zip
+
+# === 4️⃣ File Cache, Build, dan Temporary ===
+.cache/
+.cache/*
+__pycache__/
+*.pyc
+*.pyo
+*.tmp
+*.swp
+
+# === 5️⃣ File Output Aplikasi ===
+update.log
+backup.log
+
+# === 6️⃣ File Sistem OS ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# === 7️⃣ File Editor/IDE ===
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# === 8️⃣ File Docker & Container (Generated) ===
+docker-compose.override.yml
+*.bak
+*.old
+*~

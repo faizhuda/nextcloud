@@ -220,9 +220,9 @@ Berikut panduan penggunaan untuk pengguna umum:
 ### 4. Membuat Folder Baru
 
 * Klik ikon **➕ New** di atas area file.
-[New Nextcloud](docs/nc-new.png)
+![New Nextcloud](docs/nc-new.png)
 * Beri nama folder sesuai kebutuhan.
-[Folder Nextcloud](docs/nc-folder.png)
+![Folder Nextcloud](docs/nc-folder.png)
 * Folder ini bisa diisi file pribadi atau dibagikan dengan pengguna lain.
 
 
@@ -236,7 +236,7 @@ Berikut panduan penggunaan untuk pengguna umum:
 
 * Unduh aplikasi Nextcloud Desktop (Windows, macOS, Linux) atau Mobile (Android, iOS) dari [https://nextcloud.com/install](https://nextcloud.com/install).
 * Masukkan URL server (misal `http://mtf.idenx.id`) dan login dengan akun Nextcloud kamu.
-[Folder Nextcloud](docs/nc-mobile.png)
+![Folder Nextcloud](docs/nc-mobile.png)
 * Aplikasi akan otomatis menyinkronkan file antara perangkat dan server.
 
 ---

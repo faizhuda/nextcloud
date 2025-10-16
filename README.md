@@ -7,19 +7,23 @@
 
 </div>
 
-## 📑 Daftar Isi
+<a id="toc"></a>
 
-| [Sekilas Tentang](#abstrak) | [Instalasi](#instalasi--konfigurasi) | [Konfigurasi](#konfigurasi-reverse-proxy-via-web-gui) | [Keamanan](#keamanan--backup) | [Cara Pemakaian](#penggunaan-nextcloud) | [Pembahasan](#pembahasan) | [Referensi](#referensi) |
+## Daftar Isi
+
+| [Sekilas Tentang](#abstrak) | [Instalasi](#instalasi--konfigurasi) | [Konfigurasi](#4-konfigurasi-reverse-proxy-via-web-gui) | [Otomatisasi](#keamanan--backup) | [Cara Pemakaian](#penggunaan-nextcloud) | [Pembahasan](#pembahasan) | [Referensi](#referensi) |
 
 ## Abstrak
 
-Dokumen ini menjelaskan implementasi Nextcloud sebagai sistem kolaborasi dan penyimpanan data self-hosted. Implementasi dilakukan pada lingkungan Mini-PC berbasis Ubuntu 22.04 dengan penggunaan Docker, Docker Compose, Nginx Proxy Manager, dan MariaDB. Tujuan pekerjaan ini adalah menyediakan panduan teknis lengkap yang mencakup instalasi, konfigurasi, keamanan, backup, serta pengujian performa awal.
+[⬆️ Kembali ke atas](#readme)
 
-[⬆️ Kembali ke atas](#📑-daftar-isi)
+Dokumen ini menjelaskan implementasi Nextcloud sebagai sistem kolaborasi dan penyimpanan data self-hosted. Implementasi dilakukan pada lingkungan Mini-PC berbasis Ubuntu 22.04 dengan penggunaan Docker, Docker Compose, Nginx Proxy Manager, dan MariaDB. Tujuan pekerjaan ini adalah menyediakan panduan teknis lengkap yang mencakup instalasi, konfigurasi, keamanan, backup, serta pengujian performa awal.
 
 ---
 
 ## Latar Belakang dan Tujuan
+
+[⬆️ Kembali ke atas](#readme)
 
 Kebutuhan organisasi/akademik terhadap sistem penyimpanan dan kolaborasi data yang aman, dapat dikendalikan, dan hemat biaya mendorong penggunaan solusi self-hosted. Nextcloud dipilih karena fitur kolaborasi (file sharing, calendar, talk, docs), fleksibilitas deployment, dan dukungan ekosistem aplikasi. Tujuan laporan ini adalah:
 
@@ -27,11 +31,11 @@ Kebutuhan organisasi/akademik terhadap sistem penyimpanan dan kolaborasi data ya
 * Menyusun dokumentasi teknis yang dapat direplikasi.
 * Melakukan pengujian performa dasar dan menyiapkan prosedur backup dan hardening.
 
-[⬆️ Kembali ke atas](#📑-daftar-isi)
-
 ---
 
 ## Ruang Lingkup dan Batasan
+
+[⬆️ Kembali ke atas](#readme)
 
 Ruang lingkup:
 
@@ -39,29 +43,28 @@ Ruang lingkup:
 * Konfigurasi reverse proxy via Nginx Proxy Manager.
 * Pengaturan SSL via Let's Encrypt.
 * Backup otomatis sederhana untuk data dan database.
-* Pengujian performa dasar (upload/download, penggunaan sumber daya).
 
 Batasan:
 
 * Pengujian menggunakan skenario kecil (≤ 50 pengguna aktif simultan).
 * Tidak memasukkan integrasi enterprise storage (NAS/S3) secara lengkap.
-* Evaluasi keamanan fokus pada best-practice dasar (firewall, update, SSL).
-
-[⬆️ Kembali ke atas](#📑-daftar-isi)
+* Evaluasi keamanan fokus pada best-practice dasar (update, SSL).
 
 ---
 
 ## Tinjauan Pustaka Singkat
 
+[⬆️ Kembali ke atas](#readme)
+
 * Prinsip containerization dan orkestrasi ringan dengan Docker.
 * Arsitektur reverse proxy untuk mengamankan dan memetakan domain.
 * Mekanisme penyimpanan Nextcloud (data directory) dan peran DBMS (MariaDB).
 
-[⬆️ Kembali ke atas](#📑-daftar-isi)
-
 ---
 
 ## Arsitektur Sistem
+
+[⬆️ Kembali ke atas](#readme)
 
 Sistem diimplementasikan pada Mini-PC dengan topologi sederhana:
 
@@ -71,13 +74,13 @@ Sistem diimplementasikan pada Mini-PC dengan topologi sederhana:
 * Database: MariaDB (container)
 * Network: user-defined Docker network (`jeff`)
 
-Diagram arsitektur tersedia pada `diagram-arsitektur.png` di repository.
-
-[⬆️ Kembali ke atas](#📑-daftar-isi)
+![Diagram arsitektur](docs/diagram-arsitektur.jpg)
 
 ---
 
 ## Teknologi yang Digunakan
+
+[⬆️ Kembali ke atas](#readme)
 
 * Ubuntu 22.04 (host)
 * Docker & Docker Compose (v3.8)
@@ -86,11 +89,11 @@ Diagram arsitektur tersedia pada `diagram-arsitektur.png` di repository.
 * Nginx Proxy Manager (opsional, pada host atau container terpisah)
 * Certbot / Let's Encrypt untuk TLS
 
-[⬆️ Kembali ke atas](#📑-daftar-isi)
-
 ---
 
 ## Instalasi & Konfigurasi
+
+[⬆️ Kembali ke atas](#readme)
 
 ### 1. Persiapan Host
 
@@ -101,7 +104,7 @@ sudo apt update && sudo apt upgrade -y
 ```
 
 2. Pasang Docker & Docker Compose (ikuti panduan resmi Docker untuk Ubuntu 22.04).
-3. Pastikan port 80 dan 443 terbuka untuk Nginx Proxy Manager/Let's Encrypt.
+3. Pastikan port 80 terbuka untuk Nginx Proxy Manager/Let's Encrypt.
 
 ### 2. Struktur Repository
 
@@ -149,61 +152,43 @@ Segera ubah password setelah login pertama untuk alasan keamanan.
 
 Masuk ke tab **“Proxy Hosts”** dan pilih **Add Proxy Host**, lalu isi kolom berikut:
 
-| Kolom                     | Nilai Contoh        | Keterangan                                       |
-| ------------------------- | ------------------- | ------------------------------------------------ |
-| **Domain Names**          | `drive.hq.idenx.id` | Domain publik untuk akses Nextcloud              |
-| **Scheme**                | `http`              | Gunakan HTTP karena SSL akan dikelola oleh NPM   |
-| **Forward Hostname / IP** | `nc-tristan-app`    | Nama container Nextcloud (bisa juga `IP-server`) |
-| **Forward Port**          | `23001`             | Port container Nextcloud                         |
-| **Cache Assets**          | Centang             | Untuk efisiensi akses statis                     |
-| **Block Common Exploits** | Centang             | Perlindungan dasar terhadap serangan umum        |
+| Kolom                     | Nilai Contoh     | Keterangan                                       |
+| ------------------------- | ---------------- | ------------------------------------------------ |
+| **Domain Names**          | `mtf.idenx.id`   | Domain publik untuk akses Nextcloud              |
+| **Scheme**                | `http`           | Gunakan HTTP karena SSL belum diaktifkan         |
+| **Forward Hostname / IP** | `nc-tristan-app` | Nama container Nextcloud (bisa juga `IP-server`) |
+| **Forward Port**          | `23001`          | Port container Nextcloud                         |
+| **Cache Assets**          | Centang          | Untuk efisiensi akses statis                     |
+| **Block Common Exploits** | Centang          | Perlindungan dasar terhadap serangan umum        |
 
-#### 3. Mengaktifkan SSL (HTTPS)
-
-Masih di form yang sama, buka tab **SSL** dan atur:
-
-* **SSL Certificate:** “Request a new SSL Certificate”
-* **Force SSL:** ✅ aktif
-* **HTTP/2 Support:** ✅ aktif
-* **HSTS Enabled:** (opsional, aktifkan jika sudah yakin domain fix)
-* **Agree to Let's Encrypt TOS:** ✅
-
-Klik **Save**, maka NPM akan otomatis:
-
-1. Menghubungi Let’s Encrypt untuk membuat sertifikat TLS.
-2. Menyimpan sertifikat di volume `/letsencrypt`.
-3. Mengaktifkan akses aman `https://drive.hq.idenx.id`.
-
-#### 4. Verifikasi Akses
+#### 3. Verifikasi Akses
 
 Buka browser dan kunjungi:
 
 ```
-https://drive.hq.idenx.id
+http://mtf.idenx.id
 ```
 
-Jika konfigurasi berhasil, halaman login Nextcloud akan muncul dengan ikon gembok hijau (SSL aktif).
-Apabila domain belum resolve ke IP server, pastikan pengaturan DNS dan port forwarding router telah sesuai (port 443 diarahkan ke server host).
+Jika konfigurasi berhasil, halaman login Nextcloud akan muncul.
+Apabila domain belum resolve ke IP server, pastikan pengaturan DNS dan port forwarding router telah sesuai (port 80 diarahkan ke server host).
 
-#### 5. Tampilan Dashboard
+#### 4. Tampilan Dashboard
 
 Antarmuka NPM berbentuk web modern yang menampilkan daftar **Proxy Host**, **SSL Certificates**, dan **Access Lists**.
 Contohnya seperti berikut:
 
-![Nginx Proxy Manager Dashboard](docs/npm-dashboard.png)
-
-(*gambar dapat diganti dengan screenshot asli milik kamu nanti*)
-
-[⬆️ Kembali ke atas](#📑-daftar-isi)
+![Nginx Proxy Manager Dashboard](docs/npm-dashboard.jpg)
 
 ---
 
 ## Penggunaan Nextcloud
 
+[⬆️ Kembali ke atas](#readme)
+
 Setelah instalasi dan konfigurasi selesai, Nextcloud dapat diakses melalui browser di alamat domain yang sudah dikonfigurasi, misalnya:
 
 ```
-https://drive.hq.idenx.id
+http://mtf.idenx.id
 ```
 
 Berikut panduan penggunaan untuk pengguna umum:
@@ -240,7 +225,7 @@ Berikut panduan penggunaan untuk pengguna umum:
 ### 6. Sinkronisasi dengan Aplikasi Desktop dan Mobile
 
 * Unduh aplikasi Nextcloud Desktop (Windows, macOS, Linux) atau Mobile (Android, iOS) dari [https://nextcloud.com/install](https://nextcloud.com/install).
-* Masukkan URL server (misal `https://drive.hq.idenx.id`) dan login dengan akun Nextcloud kamu.
+* Masukkan URL server (misal `http://mtf.idenx.id`) dan login dengan akun Nextcloud kamu.
 * Aplikasi akan otomatis menyinkronkan file antara perangkat dan server.
 
 ### 7. Menggunakan Aplikasi Tambahan
@@ -258,17 +243,16 @@ Berikut panduan penggunaan untuk pengguna umum:
 * Di bagian **Appearance**, pilih tema terang/gelap.
 * Di bagian **Language**, ubah ke Bahasa Indonesia atau bahasa lain sesuai preferensi.
 
-[⬆️ Kembali ke atas](#📑-daftar-isi)
-
 ---
 
 ## Keamanan & Backup
+
+[⬆️ Kembali ke atas](#readme)
 
 ### Keamanan Dasar
 
 * Aktifkan TLS (HTTPS) dengan Let's Encrypt melalui Nginx Proxy Manager.
 * Selalu perbarui image Docker dan host OS.
-* Gunakan firewall (ufw) untuk membatasi akses hanya pada port yang diperlukan (80, 443, SSH).
 * Konfigurasi file permission: data directory harus milik www-data pada container Nextcloud.
 
 ### Backup
@@ -278,132 +262,41 @@ Contoh strategi backup sederhana:
 * Backup file data (sinkron ke disk eksternal atau NAS) setiap hari.
 * Backup database (dump MariaDB) setiap hari.
 * Simpan rotasi backup 7 hari.
-* Contoh skrip backup ada di folder `scripts/` (tidak disertakan di sini, bisa dibuat terpisah).
-
-[⬆️ Kembali ke atas](#📑-daftar-isi)
 
 ---
 
 ## Pembahasan
 
+[⬆️ Kembali ke atas](#readme)
+
 * Implementasi container memudahkan replikasi dan manajemen layanan.
 * Bottleneck yang paling mungkin adalah I/O storage dan bandwidth uplink.
 * Untuk skala lebih besar, pertimbangkan integrasi object storage (S3) atau NFS dengan performa lebih baik.
-
-[⬆️ Kembali ke atas](#📑-daftar-isi)
 
 ---
 
 ## Kesimpulan & Saran
 
+[⬆️ Kembali ke atas](#readme)
+
 * Nextcloud cocok untuk kebutuhan kampus skala kecil sampai menengah dengan kontrol penuh atas data.
 * Rekomendasi: gunakan SSD untuk data directory, atur backup otomatis, dan pantau resource secara periodik.
 * Pengembangan lanjutan: integrasi OnlyOffice/Collabora untuk editing dokumen real-time, dan konfigurasi clustering untuk high-availability.
-
-[⬆️ Kembali ke atas](#📑-daftar-isi)
 
 ---
 
 ## Lampiran
 
+[⬆️ Kembali ke atas](#readme)
+
 * `docker-compose.yml` — konfigurasi service
-* `diagram-arsitektur.png` — diagram topologi
-* `scripts/` — (opsional) skrip backup dan maintenance
-
-[⬆️ Kembali ke atas](#📑-daftar-isi)
-
----
-
-## Troubleshooting Umum
-
-Berikut beberapa permasalahan umum yang sering muncul saat implementasi Nextcloud self-hosted menggunakan Docker dan Nginx Proxy Manager, beserta solusinya:
-
-### 1. Port 80/443 Sudah Digunakan
-
-**Masalah:**
-Pesan error seperti `Bind for 0.0.0.0:80 failed: port is already allocated` saat menjalankan `docker-compose up`.
-
-**Solusi:**
-
-* Pastikan tidak ada service lain yang menggunakan port tersebut (contoh: Apache).
-* Jalankan `sudo lsof -i :80` atau `sudo netstat -tulpn | grep :80` untuk melihat proses yang memakai port.
-* Hentikan service tersebut dengan `sudo systemctl stop apache2`.
-
-### 2. SSL Tidak Aktif / Sertifikat Gagal Terbit
-
-**Masalah:**
-Nginx Proxy Manager gagal membuat sertifikat Let's Encrypt.
-
-**Solusi:**
-
-* Pastikan domain mengarah ke IP publik server (gunakan `ping drive.hq.idenx.id`).
-* Port 80 dan 443 harus dapat diakses dari luar jaringan.
-* Coba ulangi pembuatan sertifikat dengan menonaktifkan firewall sementara (`sudo ufw disable`).
-
-### 3. Nextcloud Tidak Bisa Diakses Setelah Restart
-
-**Masalah:**
-Setelah reboot server, container tidak otomatis berjalan.
-
-**Solusi:**
-
-* Pastikan setiap service di `docker-compose.yml` memiliki opsi `restart: unless-stopped`.
-* Jalankan `docker ps -a` untuk memastikan semua container aktif.
-* Jika belum berjalan, jalankan `docker compose up -d`.
-
-### 4. File Upload Gagal di Atas Ukuran Tertentu
-
-**Masalah:**
-Upload file besar (misalnya >512 MB) gagal atau berhenti di tengah.
-
-**Solusi:**
-
-* Edit file `config.php` Nextcloud, tambahkan:
-
-  ```php
-  'php.upload_max_filesize' => '2G',
-  'php.post_max_size' => '2G',
-  'php.memory_limit' => '512M',
-  ```
-* Restart container Nextcloud: `docker restart nc-tristan-app`.
-
-### 5. DNS Lokal Tidak Resolve
-
-**Masalah:**
-Domain `drive.hq.idenx.id` tidak bisa diakses dari dalam jaringan lokal, tapi bisa dari luar.
-
-**Solusi:**
-
-* Tambahkan entri DNS manual di `/etc/hosts` untuk mengarahkan domain ke IP lokal.
-
-  ```
-  192.168.1.10  drive.hq.idenx.id
-  ```
-* Jika menggunakan router dengan DNS internal, tambahkan record A di DNS router.
-
-### 6. Database Connection Error
-
-**Masalah:**
-Nextcloud menampilkan pesan `Error: Can't connect to database`.
-
-**Solusi:**
-
-* Periksa container database dengan `docker logs nc-tristan-db`.
-* Pastikan environment `MYSQL_*` di `docker-compose.yml` sesuai.
-* Jalankan ulang urutan container:
-
-  ```bash
-  docker compose down
-  docker compose up -d db
-  sleep 10
-  docker compose up -d app
-  ```
-
-[⬆️ Kembali ke atas](#📑-daftar-isi)
+* `diagram-arsitektur.jpg` — diagram topologi
 
 ---
 
 ## Referensi
+
+[⬆️ Kembali ke atas](#readme)
 
 * Dokumentasi resmi Nextcloud: [https://nextcloud.com](https://nextcloud.com)
 * Dokumentasi Docker: [https://docs.docker.com](https://docs.docker.com)

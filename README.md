@@ -11,7 +11,7 @@
 
 ## Daftar Isi
 
-| [Sekilas Tentang](#abstrak) | [Instalasi](#instalasi--konfigurasi) | [Konfigurasi](#4-konfigurasi-reverse-proxy-via-web-gui) | [Keamanan](#keamanan--backup) | [Cara Pemakaian](#penggunaan-nextcloud) | [Pembahasan](#pembahasan) | [Referensi](#referensi) |
+| [Sekilas Tentang](#abstrak) | [Instalasi](#instalasi--konfigurasi) | [Konfigurasi](#7-konfigurasi-reverse-proxy-via-web-gui) | [Keamanan](#keamanan) | [Cara Pemakaian](#penggunaan-nextcloud) | [Pembahasan](#pembahasan) | [Referensi](#referensi) |
 
 ## Abstrak
 
@@ -33,64 +33,6 @@ Kebutuhan organisasi/akademik terhadap sistem penyimpanan dan kolaborasi data ya
 
 ---
 
-## Ruang Lingkup dan Batasan
-
-[⬆️ Kembali ke atas](#daftar-isi)
-
-Ruang lingkup:
-
-* Instalasi menggunakan Docker Compose.
-* Konfigurasi reverse proxy via Nginx Proxy Manager.
-* Pengaturan SSL via Let's Encrypt.
-* Backup otomatis sederhana untuk data dan database.
-
-Batasan:
-
-* Pengujian menggunakan skenario kecil (≤ 50 pengguna aktif simultan).
-* Tidak memasukkan integrasi enterprise storage (NAS/S3) secara lengkap.
-* Evaluasi keamanan fokus pada best-practice dasar (update, SSL).
-
----
-
-## Tinjauan Pustaka Singkat
-
-[⬆️ Kembali ke atas](#daftar-isi)
-
-* Prinsip containerization dan orkestrasi ringan dengan Docker.
-* Arsitektur reverse proxy untuk mengamankan dan memetakan domain.
-* Mekanisme penyimpanan Nextcloud (data directory) dan peran DBMS (MariaDB).
-
----
-
-## Arsitektur Sistem
-
-[⬆️ Kembali ke atas](#daftar-isi)
-
-Sistem diimplementasikan pada Mini-PC dengan topologi sederhana:
-
-* Host: Mini-PC (Ubuntu 22.04)
-* Reverse Proxy: Nginx Proxy Manager (container terpisah; mengelola TLS/SSL dan virtual host)
-* Aplikasi: Nextcloud (container)
-* Database: MariaDB (container)
-* Network: user-defined Docker network (`jeff`)
-
-![Diagram arsitektur](docs/diagram-arsitektur.jpg)
-
----
-
-## Teknologi yang Digunakan
-
-[⬆️ Kembali ke atas](#daftar-isi)
-
-* Ubuntu 22.04 (host)
-* Docker & Docker Compose (v3.8)
-* Nextcloud (image resmi)
-* MariaDB (image resmi)
-* Nginx Proxy Manager (opsional, pada host atau container terpisah)
-* Certbot / Let's Encrypt untuk TLS
-
----
-
 ## Instalasi & Konfigurasi
 
 [⬆️ Kembali ke atas](#daftar-isi)
@@ -103,32 +45,124 @@ Sistem diimplementasikan pada Mini-PC dengan topologi sederhana:
 sudo apt update && sudo apt upgrade -y
 ```
 
+Perintah di atas memperbarui daftar paket dan meng-upgrade seluruh paket agar sistem dalam kondisi terbaru.
+
 2. Pasang Docker & Docker Compose (ikuti panduan resmi Docker untuk Ubuntu 22.04).
-3. Pastikan port 80 terbuka untuk Nginx Proxy Manager/Let's Encrypt.
+3. Pastikan port 80 terbuka untuk Nginx Proxy Manager/Let's Encrypt agar dapat menerbitkan sertifikat SSL.
 
-### 2. Struktur Repository
+---
 
-Direktori contoh:
+### 2. Struktur Direktori
 
-```
-nextcloud/
-├─ docker-compose.yml
-├─ config/
-│  └─ config.php (opsional, diisi setelah instalasi awal)
-├─ data/
-└─ backup/
+Sebelum menjalankan Nextcloud, buat struktur direktori untuk menampung data dan file konfigurasi.
+
+```bash
+mkdir data-nc docker
 ```
 
-### 3. Contoh `docker-compose.yml`
+Membuat dua folder utama:
 
-File lengkap tersedia di `docker-compose.yml`. Secara ringkas:
+* `data-nc` → untuk data Nextcloud (database dan file Nextcloud)
+* `docker` → untuk file konfigurasi Docker (misalnya `docker-compose.yml`)
 
-* Service `db` untuk MariaDB
-* Service `app` untuk Nextcloud (menggunakan image resmi)
-* Volumes host-mounted agar data persisten
-* Network `jeff` untuk isolasi
+Lalu masuk ke direktori `data-nc` dan buat subfolder:
 
-### 4. Konfigurasi Reverse Proxy via Web GUI
+```bash
+cd data-nc
+mkdir db nc
+```
+
+Folder `db` akan berisi data MariaDB, sedangkan `nc` akan menyimpan file aplikasi Nextcloud yang di-mount dari container.
+
+Kembali ke direktori sebelumnya:
+
+```bash
+cd -
+```
+
+Masuk ke folder konfigurasi Docker:
+
+```bash
+cd docker
+```
+
+---
+
+### 3. Menjalankan Docker Compose Pertama Kali
+
+Setelah file `docker-compose.yml` disiapkan, jalankan container untuk pertama kali:
+
+```bash
+docker-compose up -d
+```
+
+> ⚠️ **Catatan penting:**
+> Sebelum menjalankan perintah ini, **pastikan baris berikut di file `docker-compose.yml` dijadikan komentar**:
+>
+> ```yaml
+> # - ./config.php:/var/www/html/config/config.php
+> ```
+>
+> Baris ini memetakan file konfigurasi `config.php` dari host ke dalam container. Jika belum dibuat, container akan error saat dijalankan pertama kali.
+
+Setelah container berjalan, lakukan instalasi awal Nextcloud melalui browser (membuat akun admin, memilih database, dll).
+
+---
+
+### 4. Mengambil File Konfigurasi
+
+Setelah proses instalasi Nextcloud selesai, hentikan semua container:
+
+```bash
+docker-compose down
+```
+
+Lalu salin file konfigurasi dari container ke direktori host agar bisa disesuaikan:
+
+```bash
+cp data-nc/nc/var/www/html/config/config.php .
+```
+
+Perintah ini menyalin file `config.php` yang telah dihasilkan oleh Nextcloud ke direktori kerja (folder `docker`).
+
+---
+
+### 5. Mengubah Domain Terpercaya (Trusted Domains)
+
+Sesuaikan domain publik dan URL CLI Nextcloud dengan skrip PHP berikut:
+
+```bash
+sudo php -r '$c="config.php"; $cfg = include $c; $cfg["trusted_domains"]=["mtf.idenx.id"]; $cfg["overwrite.cli.url"]="mtf.idenx.id"; file_put_contents($c, "<?php\nreturn ".var_export($cfg, true).";\n");'
+```
+
+Penjelasan:
+
+* `trusted_domains` → Menambahkan domain publik (`mtf.idenx.id`) agar Nextcloud hanya dapat diakses dari alamat tersebut.
+* `overwrite.cli.url` → Menentukan URL dasar yang digunakan Nextcloud saat diakses melalui CLI.
+* Skrip ini secara otomatis membuka file `config.php`, menambahkan konfigurasi domain, dan menulis ulang hasilnya ke file yang sama.
+
+---
+
+### 6. Menjalankan Container Akhir
+
+Setelah file `config.php` telah disesuaikan, aktifkan kembali baris volume pada `docker-compose.yml`:
+
+```yaml
+- ./config.php:/var/www/html/config/config.php
+```
+
+Kemudian jalankan kembali seluruh service:
+
+```bash
+docker-compose up -d
+```
+
+Sekarang semua container akan berjalan dengan konfigurasi final yang benar.
+Nextcloud dapat diakses melalui domain yang telah dikonfigurasi (contoh: `http://mtf.idenx.id`).
+
+---
+
+### 7. Konfigurasi Reverse Proxy via Web GUI
 
 Setelah container **Nginx Proxy Manager** dijalankan, antarmuka administrasi dapat diakses melalui browser dengan alamat:
 
@@ -152,14 +186,14 @@ Segera ubah password setelah login pertama untuk alasan keamanan.
 
 Masuk ke tab **“Proxy Hosts”** dan pilih **Add Proxy Host**, lalu isi kolom berikut:
 
-| Kolom                     | Nilai Contoh     | Keterangan                                       |
-| ------------------------- | ---------------- | ------------------------------------------------ |
-| **Domain Names**          | `mtf.idenx.id`   | Domain publik untuk akses Nextcloud              |
-| **Scheme**                | `http`           | Gunakan HTTP karena SSL belum diaktifkan         |
-| **Forward Hostname / IP** | `IP-server`      | Nama container Nextcloud                         |
-| **Forward Port**          | `23001`          | Port container Nextcloud                         |
-| **Cache Assets**          | Kosong           | Untuk efisiensi akses statis                     |
-| **Block Common Exploits** | Centang          | Perlindungan dasar terhadap serangan umum        |
+| Kolom                     | Nilai Contoh   | Keterangan                                |
+| ------------------------- | -------------- | ----------------------------------------- |
+| **Domain Names**          | `mtf.idenx.id` | Domain publik untuk akses Nextcloud       |
+| **Scheme**                | `http`         | Gunakan HTTP karena SSL belum diaktifkan  |
+| **Forward Hostname / IP** | `IP-server`    | Nama container Nextcloud                  |
+| **Forward Port**          | `23001`        | Port container Nextcloud                  |
+| **Cache Assets**          | Kosong         | Untuk efisiensi akses statis              |
+| **Block Common Exploits** | Centang        | Perlindungan dasar terhadap serangan umum |
 
 #### 3. Verifikasi Akses
 
@@ -241,7 +275,7 @@ Berikut panduan penggunaan untuk pengguna umum:
 
 ---
 
-## Keamanan & Backup
+## Keamanan
 
 [⬆️ Kembali ke atas](#daftar-isi)
 
